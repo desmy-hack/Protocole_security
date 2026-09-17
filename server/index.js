@@ -7,8 +7,50 @@ const authenticateToken = require('./auth');
 const multer = require('multer');
 const path = require('path');
 const crypto = require('crypto');
+const fs = require('fs'); //remonté ici une fois pour toutes, au lieu d'être répété dans chaque route
+const rateLimit = require('express-rate-limit');
+const helmet = require('helmet');
 
 const app = express();
+
+app.use(helmet());
+
+// Limite les tentatives de connexion/inscription pour freiner le brute-force.
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  limit: 20,                 // 20 requêtes max par IP sur cette fenêtre
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Trop de tentatives. Réessayez plus tard.' },
+});
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function isValidEmail(email) {
+  return typeof email === 'string' && email.length <= 254 && EMAIL_REGEX.test(email);
+}
+
+// ⚡ NOUVEAU: fonction utilitaire, remplace les 5 blocs dupliqués
+// "const fs = require('fs'); try { fs.unlinkSync(...) } catch..." de l'upload.
+function cleanupUploadedFile(req) {
+  if (req.file) {
+    try {
+      fs.unlinkSync(req.file.path);
+    } catch (cleanupError) {
+      console.error('[UPLOAD CLEANUP]', cleanupError);
+    }
+  }
+}
+
+// valide qu'un token de partage a bien le format attendu
+// (64 caractères hexadécimaux = crypto.randomBytes(32).toString('hex')).
+// Évite d'interroger la base pour une valeur qui ne peut de toute façon
+// jamais correspondre à un vrai token.
+const SHARE_TOKEN_REGEX = /^[0-9a-fA-F]{64}$/;
+
+function isValidShareToken(token) {
+  return typeof token === 'string' && SHARE_TOKEN_REGEX.test(token);
+}
 
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
@@ -65,7 +107,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // inscription
-app.post('/api/register', async (req, res) => {
+app.post('/api/register', authLimiter, async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -73,6 +115,12 @@ app.post('/api/register', async (req, res) => {
     if (!email || !password) {
       return res.status(400).json({
         error: 'Email et mot de passe obligatoires.'
+      });
+    }
+
+    if (!isValidEmail(email)) {
+      return res.status(400).json({
+        error: 'Adresse e-mail invalide.'
       });
     }
 
@@ -120,7 +168,7 @@ app.post('/api/register', async (req, res) => {
 });
 
 // connexion
-app.post('/api/login', async (req, res) => {
+app.post('/api/login', authLimiter, async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -223,81 +271,50 @@ app.post(
         originalName
       } = req.body;
 
-	// Vérifier les métadonnées obligatoires
-	if (!salt || !iv || !sha256Hash || !originalName) {
-	  const fs = require('fs');
+      // Vérifier les métadonnées obligatoires
+      // "const fs = require('fs'); try {...} catch {...}" dupliqué 5 fois
+      if (!salt || !iv || !sha256Hash || !originalName) {
+        cleanupUploadedFile(req);
+        return res.status(400).json({
+          error: 'Métadonnées du fichier incomplètes.'
+        });
+      }
 
-	  // Supprimer le fichier déjà créé par Multer
-	  try {
-	    fs.unlinkSync(req.file.path);
-	  } catch (cleanupError) {
-	    console.error('[UPLOAD CLEANUP]', cleanupError);
-	  }
+      // Vérifier le nom original du fichier
+      if (
+        typeof originalName !== 'string' ||
+        originalName.trim().length === 0 ||
+        originalName.length > 255
+      ) {
+        cleanupUploadedFile(req);
+        return res.status(400).json({
+          error: 'Nom de fichier invalide.'
+        });
+      }
 
-	  return res.status(400).json({
-	    error: 'Métadonnées du fichier incomplètes.'
-	  });
-	}
-	
-	// Vérifier le nom original du fichier
-	if (
-	  typeof originalName !== 'string' ||
-	  originalName.trim().length === 0 ||
-	  originalName.length > 255
-	) {
-	  const fs = require('fs');
+      // Vérifier le format hexadécimal
+      const hexRegex = /^[0-9a-fA-F]+$/;
 
-	  try {
-	    fs.unlinkSync(req.file.path);
-	  } catch (cleanupError) {
-	    console.error('[UPLOAD CLEANUP]', cleanupError);
-	  }
+      if (!hexRegex.test(salt) ||
+          !hexRegex.test(iv) ||
+          !hexRegex.test(sha256Hash)) {
+        cleanupUploadedFile(req);
+        return res.status(400).json({
+          error: 'Format des métadonnées cryptographiques invalide.'
+        });
+      }
 
-	  return res.status(400).json({
-	    error: 'Nom de fichier invalide.'
-	  });
-	}
-
-
-	// Vérifier le format hexadécimal
-	const hexRegex = /^[0-9a-fA-F]+$/;
-
-	if (!hexRegex.test(salt) ||
-	    !hexRegex.test(iv) ||
-	    !hexRegex.test(sha256Hash)) {
-
-	  const fs = require('fs');
-
-	  try {
-	    fs.unlinkSync(req.file.path);
-	  } catch (cleanupError) {
-	    console.error('[UPLOAD CLEANUP]', cleanupError);
-	  }
-
-	  return res.status(400).json({
-	    error: 'Format des métadonnées cryptographiques invalide.'
-	  });
-	}
-
-
-	// Vérifier les longueurs exactes
-	if (
-	  salt.length !== 32 ||
-	  iv.length !== 24 ||
-	  sha256Hash.length !== 64
-	) {
-	  const fs = require('fs');
-
-	  try {
-	    fs.unlinkSync(req.file.path);
-	  } catch (cleanupError) {
-	    console.error('[UPLOAD CLEANUP]', cleanupError);
-	  }
-
-	  return res.status(400).json({
-	    error: 'Taille des métadonnées cryptographiques invalide.'
-	  });
-	}
+      // Vérifier les longueurs exactes
+      if (
+        salt.length !== 32 ||
+        iv.length !== 24 ||
+        sha256Hash.length !== 64
+      ) {
+        cleanupUploadedFile(req);
+        return res.status(400).json({
+          error: 'Taille des métadonnées cryptographiques invalide.'
+        });
+      }
 
       // Générer un token de partage aléatoire
       const shareToken = crypto.randomBytes(32).toString('hex');
@@ -336,18 +353,8 @@ app.post(
 
     } catch (error) {
       console.error('[UPLOAD]', error);
-
-      // Si SQLite échoue après création du fichier,
-      // supprimer le fichier physique
-      if (req.file) {
-        const fs = require('fs');
-
-        try {
-          fs.unlinkSync(req.file.path);
-        } catch (cleanupError) {
-          console.error('[UPLOAD CLEANUP]', cleanupError);
-        }
-      }
+      // cleanupUploadedFile(req) au lieu du bloc dupliqué
+      cleanupUploadedFile(req);
 
       res.status(500).json({
         error: 'Erreur interne lors de l\'enregistrement du fichier.'
@@ -484,8 +491,6 @@ app.get('/api/files/:id', authenticateToken, (req, res) => {
     );
 
     // Vérifier que le fichier existe réellement sur le disque
-    const fs = require('fs');
-
     if (!fs.existsSync(filePath)) {
       return res.status(404).json({
         error: 'Fichier physique introuvable.'
@@ -544,8 +549,6 @@ app.delete('/api/files/:id', authenticateToken, (req, res) => {
       });
     }
 
-    const fs = require('fs');
-
     const filePath = path.join(
       __dirname,
       'storage',
@@ -585,10 +588,11 @@ app.get('/api/share/:token', (req, res) => {
   try {
     const shareToken = req.params.token;
 
-    // Vérifier que le token existe
-    if (!shareToken) {
-      return res.status(400).json({
-        error: 'Token de partage manquant.'
+    // pas juste sa présence. Une valeur qui ne peut pas être un vrai token
+    // est rejetée immédiatement, sans interroger la base de données.
+    if (!isValidShareToken(shareToken)) {
+      return res.status(404).json({
+        error: 'Lien de partage invalide ou fichier introuvable.'
       });
     }
 
@@ -613,8 +617,6 @@ app.get('/api/share/:token', (req, res) => {
         error: 'Lien de partage invalide ou fichier introuvable.'
       });
     }
-
-    const fs = require('fs');
 
     const filePath = path.join(
       __dirname,
@@ -656,10 +658,9 @@ app.get('/api/share/:token/download', (req, res) => {
   try {
     const shareToken = req.params.token;
 
-    // Vérifier que le token existe
-    if (!shareToken) {
-      return res.status(400).json({
-        error: 'Token de partage manquant.'
+    if (!isValidShareToken(shareToken)) {
+      return res.status(404).json({
+        error: 'Lien de partage invalide ou fichier introuvable.'
       });
     }
 
@@ -678,8 +679,6 @@ app.get('/api/share/:token/download', (req, res) => {
         error: 'Lien de partage invalide ou fichier introuvable.'
       });
     }
-
-    const fs = require('fs');
 
     const filePath = path.join(
       __dirname,
@@ -715,7 +714,15 @@ app.get('/api/share/:token/download', (req, res) => {
 });
 
 
+
+app.use((req, res) => {
+  res.status(404).json({ error: 'Route introuvable.' });
+});
+
+
 // Gestion globale des erreurs Multer
+// remontent jusqu'ici (pas seulement Multer) grâce au "next(error)" plus bas
+// et au filet de sécurité final juste après.
 app.use((error, req, res, next) => {
   if (error instanceof multer.MulterError) {
     console.error('[MULTER]', error.code);
@@ -732,6 +739,17 @@ app.use((error, req, res, next) => {
   }
 
   next(error);
+});
+
+
+// gérée par aucun try/catch ni par le middleware Multer ci-dessus (par
+// exemple une erreur de syntaxe dans le JSON envoyé par le client).
+// Le message renvoyé au client reste volontairement générique: on ne
+// veut jamais exposer error.message ou error.stack, qui pourraient
+// révéler des détails internes exploitables par un attaquant.
+app.use((error, req, res, next) => {
+  console.error('[UNHANDLED ERROR]', error);
+  res.status(500).json({ error: 'Erreur interne du serveur.' });
 });
 
 
