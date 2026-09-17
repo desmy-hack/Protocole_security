@@ -1,0 +1,17 @@
+{
+  "name": "coffre-fort-fichiers",
+  "version": "1.0.0",
+  "description": "Coffre-fort web de partage sécurisé de fichiers",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "better-sqlite3": "^13.0.3",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "multer": "^2.4.0"
+  }
+}
