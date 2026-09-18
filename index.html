@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Protocole Security — Coffre-fort numérique privé">
+  <title>Protocole Security — Coffre-fort</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+  <section id="auth-view" class="auth-shell">
+    <div class="auth-brand">
+      <div class="brand-mark">P</div>
+      <div>
+        <strong>PROTOCOLE</strong>
+        <span>SECURITY</span>
+      </div>
+    </div>
+    <div class="auth-copy">
+      <span class="eyebrow">COFFRE-FORT NUMÉRIQUE</span>
+      <h1>Vos fichiers.<br><em>Votre confidentialité.</em></h1>
+      <p>Protégez vos données avec une interface pensée autour de la sécurité et du contrôle utilisateur.</p>
+      <div class="security-points">
+        <div><span>✓</span> Protection des données</div>
+        <div><span>✓</span> Accès authentifié</div>
+        <div><span>✓</span> Chiffrement côté client prévu</div>
+      </div>
+    </div>
+    <div class="auth-card">
+      <div class="auth-tabs">
+        <button class="auth-tab active" data-auth="login">Connexion</button>
+        <button class="auth-tab" data-auth="register">Créer un compte</button>
+      </div>
+
+      <form id="login-form" class="auth-form">
+        <h2>Bienvenue</h2>
+        <p class="muted">Accédez à votre coffre-fort.</p>
+        <label>Email<input id="login-email" type="email" autocomplete="email" required></label>
+        <label>Mot de passe<div class="password-wrap"><input id="login-password" type="password" autocomplete="current-password" required><button type="button" class="password-toggle" data-target="login-password">Afficher</button></div></label>
+        <button class="primary-btn" type="submit">Se connecter <span>→</span></button>
+      </form>
+
+      <form id="register-form" class="auth-form hidden">
+        <h2>Créer votre coffre</h2>
+        <p class="muted">Commencez à protéger vos fichiers.</p>
+        <label>Email<input id="register-email" type="email" autocomplete="email" required></label>
+        <label>Mot de passe<div class="password-wrap"><input id="register-password" type="password" autocomplete="new-password" minlength="8" required><button type="button" class="password-toggle" data-target="register-password">Afficher</button></div></label>
+        <div class="password-meter"><span id="password-meter-bar"></span></div>
+        <small id="password-hint" class="muted">8 caractères minimum.</small>
+        <button class="primary-btn" type="submit">Créer mon compte <span>→</span></button>
+      </form>
+    </div>
+  </section>
+
+  <section id="app-view" class="app-shell hidden">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <div class="brand-mark">P</div>
+        <div><strong>PROTOCOLE</strong><span>SECURITY</span></div>
+      </div>
+      <nav>
+        <button class="nav-item active" data-page="dashboard"><span>⌂</span> Vue d’ensemble</button>
+        <button class="nav-item" data-page="files"><span>▣</span> Mes fichiers</button>
+        <button class="nav-item" data-page="shared"><span>↗</span> Partagés</button>
+        <button class="nav-item" data-page="settings"><span>⚙</span> Paramètres</button>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="user-mini"><div class="avatar" id="avatar">U</div><div><strong id="user-email">Utilisateur</strong><small>Compte sécurisé</small></div></div>
+        <button id="logout-btn" class="logout-btn">Déconnexion</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <button id="menu-btn" class="icon-btn mobile-only" aria-label="Menu">☰</button>
+        <div>
+          <span class="eyebrow" id="page-eyebrow">COFFRE-FORT</span>
+          <h1 id="page-title">Vue d’ensemble</h1>
+        </div>
+        <div class="top-actions">
+          <div class="secure-badge">● Session sécurisée</div>
+          <button class="icon-btn" id="notification-btn" aria-label="Notifications">♢</button>
+        </div>
+      </header>
+
+      <div id="page-content"></div>
+    </main>
+  </section>
+
+  <div id="upload-modal" class="modal hidden">
+    <div class="modal-backdrop" data-close-modal></div>
+    <div class="modal-card">
+      <button class="modal-close" data-close-modal aria-label="Fermer">×</button>
+      <span class="eyebrow">NOUVEAU FICHIER</span>
+      <h2>Ajouter au coffre</h2>
+      <p class="muted">Sélectionnez un fichier. Le chiffrement côté client pourra être branché ici.</p>
+      <label class="dropzone" id="dropzone">
+        <input id="file-input" type="file" hidden>
+        <div class="drop-icon">↑</div>
+        <strong>Glissez-déposez votre fichier</strong>
+        <span>ou cliquez pour parcourir</span>
+        <small>Maximum 50 MB</small>
+      </label>
+      <div id="selected-file" class="selected-file hidden"></div>
+      <div class="upload-progress hidden" id="upload-progress">
+        <div><span>Envoi sécurisé</span><strong id="progress-value">0%</strong></div>
+        <div class="progress-track"><span id="progress-bar"></span></div>
+      </div>
+      <button id="upload-btn" class="primary-btn" disabled>Ajouter le fichier <span>→</span></button>
+    </div>
+  </div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/crypto.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/files.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>

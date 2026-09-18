@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Protocole Security — Coffre-fort numérique privé"><title>Protocole Security — Coffre-fort</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="bg-noise"></div><div class="orb orb-one"></div><div class="orb orb-two"></div>
+<div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+<section id="auth-view" class="auth-shell">
+  <div class="auth-left">
+    <div class="auth-brand"><div class="brand-mark"><span>P</span></div><div><strong>COFFRE</strong><span>FORT</span></div></div>
+    <div class="auth-main-copy">
+      <div class="eyebrow"><i></i> PRIVATE DIGITAL VAULT</div>
+      <h1>La sécurité de vos fichiers,<br><em>sans compromis.</em></h1>
+      <p>Un espace privé pour stocker, chiffrer et partager vos documents avec une interface conçue pour inspirer confiance.</p>
+      <div class="trust-row"><div><b>01</b><span>Stockage<br>privé</span></div><div><b>02</b><span>Chiffrement<br>côté client</span></div><div><b>03</b><span>Partage<br>contrôlé</span></div></div>
+    </div>
+    <div class="vault-stage" aria-hidden="true">
+      <div class="grid-glow"></div><div class="vault-orbit orbit-a"></div><div class="vault-orbit orbit-b"></div>
+      <div class="vault-device"><div class="vault-top"><span></span><span></span><span></span></div><div class="vault-lock"><div class="lock-shackle"></div><div class="lock-body">P</div></div><div class="vault-line"></div></div>
+      <div class="tech-tag tag-a">AES-GCM <small>256</small></div><div class="tech-tag tag-b">SHA-256 <small>INTEGRITY</small></div><div class="tech-tag tag-c">PBKDF2 <small>SECURE</small></div>
+    </div>
+    <div class="auth-footer"><span class="live-dot"></span> Infrastructure sécurisée <b>•</b> Accès authentifié</div>
+  </div>
+
+  <div class="auth-right">
+    <div class="auth-card">
+      <div class="card-top"><span class="secure-label"><i></i> ESPACE PRIVÉ</span><span class="secure-code">SEC / 01</span></div>
+      <div class="auth-tabs"><button class="auth-tab active" data-auth="login">Connexion</button><button class="auth-tab" data-auth="register">Créer un compte</button></div>
+      <form id="login-form" class="auth-form">
+        <div class="form-heading"><h2>Bon retour.</h2><p>Connectez-vous pour accéder à votre coffre-fort.</p></div>
+        <label><span>Adresse e-mail</span><div class="input-shell"><svg viewBox="0 0 24 24"><path d="M4 6h16v12H4z"/><path d="m4 7 8 6 8-6"/></svg><input id="login-email" type="email" autocomplete="email" placeholder="nom@exemple.com" required></div></label>
+        <label><span>Mot de passe</span><div class="input-shell"><svg viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg><input id="login-password" type="password" autocomplete="current-password" placeholder="Votre mot de passe" required><button type="button" class="password-toggle" data-target="login-password">Afficher</button></div></label>
+        <button class="primary-btn" type="submit"><span>Accéder au coffre</span><b>↗</b></button>
+        <div class="form-security"><span>⌁</span> Votre session est protégée par authentification JWT</div>
+      </form>
+      <form id="register-form" class="auth-form hidden">
+        <div class="form-heading"><h2>Créez votre espace.</h2><p>Un compte privé pour commencer à protéger vos fichiers.</p></div>
+        <label><span>Adresse e-mail</span><div class="input-shell"><svg viewBox="0 0 24 24"><path d="M4 6h16v12H4z"/><path d="m4 7 8 6 8-6"/></svg><input id="register-email" type="email" autocomplete="email" placeholder="nom@exemple.com" required></div></label>
+        <label><span>Mot de passe</span><div class="input-shell"><svg viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg><input id="register-password" type="password" autocomplete="new-password" minlength="8" placeholder="8 caractères minimum" required><button type="button" class="password-toggle" data-target="register-password">Afficher</button></div></label>
+        <div class="password-meter"><div><span id="password-meter-bar"></span></div><small id="password-hint">8 caractères minimum.</small></div>
+        <button class="primary-btn" type="submit"><span>Créer mon coffre</span><b>↗</b></button>
+        <div class="form-security"><span>⌁</span> Vos données restent associées à votre espace privé</div>
+      </form>
+    </div>
+    <p class="legal-line">En continuant, vous acceptez l'utilisation sécurisée de ce service.</p>
+  </div>
+</section>
+
+<section id="app-view" class="app-shell hidden">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand"><div class="brand-mark"><span>CF</span></div><div><strong>COFFRE</strong><span>FORT</span></div></div>
+    <div class="nav-caption">ESPACE DE TRAVAIL</div>
+    <nav>
+      <button class="nav-item active" data-page="dashboard"><span>⌂</span> Vue d’ensemble</button><button class="nav-item" data-page="files"><span>▣</span> Mes fichiers</button><button class="nav-item" data-page="shared"><span>↗</span> Partagés</button><button class="nav-item" data-page="settings"><span>⚙</span> Paramètres</button>
+    </nav>
+    <div class="sidebar-bottom"><div class="vault-status"><div class="status-shield">⌁</div><div><strong>Coffre protégé</strong><small>Chiffrement actif</small></div><i></i></div><div class="user-mini"><div class="avatar" id="avatar">U</div><div><strong id="user-email">Utilisateur</strong><small>Compte sécurisé</small></div></div><button id="logout-btn" class="logout-btn">↪ Déconnexion</button></div>
+  </aside>
+  <main class="main"><header class="topbar"><button id="menu-btn" class="icon-btn mobile-only">☰</button><div><span class="eyebrow" id="page-eyebrow">COFFRE-FORT</span><h1 id="page-title">Vue d’ensemble</h1></div><div class="top-actions"><div class="secure-badge"><i></i> Session sécurisée</div><button class="icon-btn" id="notification-btn">♢</button></div></header><div id="page-content"></div></main>
+</section>
+
+<div id="upload-modal" class="modal hidden"><div class="modal-backdrop" data-close-modal></div><div class="modal-card"><button class="modal-close" data-close-modal>×</button><span class="eyebrow">NOUVEAU FICHIER</span><h2>Ajouter au coffre</h2><p class="muted">Le fichier est chiffré AES-GCM dans votre navigateur avant l'envoi.</p><label class="dropzone" id="dropzone"><input id="file-input" type="file" hidden><div class="drop-icon">↑</div><strong>Glissez-déposez votre fichier</strong><span>ou cliquez pour parcourir</span><small>Maximum 50 MB</small></label><div id="selected-file" class="selected-file hidden"></div><label class="upload-pass">Mot de passe de chiffrement<div class="password-wrap"><input id="upload-password" type="password" autocomplete="new-password" minlength="8"><button type="button" class="password-toggle" data-target="upload-password">Afficher</button></div></label><small class="muted">Transmettez-le au destinataire par un autre canal que le lien.</small><div class="upload-progress hidden" id="upload-progress"><div><span id="progress-label">Envoi sécurisé</span><strong id="progress-value">0%</strong></div><div class="progress-track"><span id="progress-bar"></span></div></div><button id="upload-btn" class="primary-btn" disabled>Ajouter le fichier <span>→</span></button></div></div>
+<script src="/js/api.js"></script><script src="/js/crypto.js"></script><script src="/js/auth.js"></script><script src="/js/files.js"></script><script src="/js/app.js"></script>
+</body></html>

@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fichier partagé — Protocole Security</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="share-shell">
+    <div class="share-card">
+      <div class="brand" style="margin-bottom:22px">
+        <div class="brand-mark">CF</div>
+        <div><strong>COFFRE</strong><span>FORT</span></div>
+      </div>
+
+      <div id="loading-state"><p class="muted">Vérification du lien…</p></div>
+
+      <div id="invalid-state" class="hidden">
+        <div class="share-msg error" id="invalid-msg">Ce lien de partage est invalide ou a expiré.</div>
+      </div>
+
+      <div id="download-state" class="hidden">
+        <h2 id="file-name"></h2>
+        <p class="muted file-meta" id="file-meta"></p>
+        <div id="dl-msg"></div>
+        <form id="download-form">
+          <label>Mot de passe fourni par l'expéditeur
+            <div class="password-wrap">
+              <input id="dl-password" type="password" autocomplete="off" required>
+              <button type="button" class="password-toggle" data-target="dl-password">Afficher</button>
+            </div>
+          </label>
+          <button class="primary-btn" type="submit" id="dl-submit">Déchiffrer et télécharger <span>→</span></button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/crypto.js"></script>
+  <script src="/js/share.js"></script>
+</body>
+</html>
