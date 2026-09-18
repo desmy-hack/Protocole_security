@@ -159,6 +159,3 @@ node tests/security.test.js
 - [ ] Vérifier que le dépôt GitHub ne contient aucun secret (`.env`, base de données, fichiers chiffrés)
 - [ ] Mettre à jour les identifiants de démonstration dans ce README
 
-## 9. Captures d'écran
-
-*(à ajouter : page de connexion, dépôt d'un fichier, liste des fichiers avec lien de partage, page de téléchargement côté destinataire)*
