@@ -3,44 +3,839 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>Fichier partagé — Protocole Security</title>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  >
+
   <link rel="stylesheet" href="/css/style.css">
+
+  <style>
+    /* 
+
+       Interface uniquement : aucune modification de la logique
+       */
+
+    :root {
+      --share-bg: #070b14;
+      --share-card: rgba(15, 21, 34, 0.88);
+      --share-card-border: rgba(255, 255, 255, 0.09);
+      --share-text: #f5f7fb;
+      --share-muted: #98a2b3;
+      --share-primary: #7c5cff;
+      --share-primary-light: #9d85ff;
+      --share-success: #34d399;
+      --share-danger: #fb7185;
+      --share-shadow:
+        0 30px 80px rgba(0, 0, 0, 0.45),
+        0 0 0 1px rgba(255, 255, 255, 0.025);
+    }
+
+    /* 
+       PAGE
+    */
+
+    body.share-page {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(
+          circle at 20% 20%,
+          rgba(124, 92, 255, 0.16),
+          transparent 32%
+        ),
+        radial-gradient(
+          circle at 80% 75%,
+          rgba(52, 211, 153, 0.08),
+          transparent 28%
+        ),
+        var(--share-bg);
+      color: var(--share-text);
+      overflow-x: hidden;
+    }
+
+    .share-shell {
+      position: relative;
+      min-height: 100vh;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+      box-sizing: border-box;
+      overflow: hidden;
+    }
+
+    /* Background glow */
+
+    .share-shell::before,
+    .share-shell::after {
+      content: "";
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+      filter: blur(10px);
+    }
+
+    .share-shell::before {
+      width: 420px;
+      height: 420px;
+      top: -180px;
+      left: -160px;
+      background: rgba(124, 92, 255, 0.10);
+      animation: shareOrbOne 9s ease-in-out infinite;
+    }
+
+    .share-shell::after {
+      width: 360px;
+      height: 360px;
+      right: -140px;
+      bottom: -150px;
+      background: rgba(52, 211, 153, 0.07);
+      animation: shareOrbTwo 11s ease-in-out infinite;
+    }
+
+    /* 
+       CARD
+        */
+
+    .share-card {
+      position: relative;
+      z-index: 2;
+
+      width: min(100%, 560px);
+      box-sizing: border-box;
+
+      padding: 42px;
+
+      background: var(--share-card);
+      border: 1px solid var(--share-card-border);
+      border-radius: 28px;
+
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+
+      box-shadow: var(--share-shadow);
+
+      animation: shareCardEnter 0.65s cubic-bezier(.22, 1, .36, 1);
+    }
+
+    /* Top subtle line */
+
+    .share-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 12%;
+      right: 12%;
+      height: 1px;
+      background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(124, 92, 255, 0.8),
+        transparent
+      );
+      opacity: 0.8;
+    }
+
+    /*
+       BRAND
+       */
+
+    .share-card .brand {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      margin-bottom: 38px !important;
+      animation: shareFadeUp 0.55s 0.1s both;
+    }
+
+    .share-card .brand-mark {
+      width: 48px;
+      height: 48px;
+      flex: 0 0 48px;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      border-radius: 14px;
+
+      background: linear-gradient(
+        135deg,
+        #7c5cff,
+        #5b42d6
+      );
+
+      color: white;
+      font-family: "DM Mono", monospace;
+      font-size: 15px;
+      font-weight: 500;
+
+      box-shadow:
+        0 10px 30px rgba(124, 92, 255, 0.28),
+        inset 0 1px 0 rgba(255,255,255,0.2);
+
+      animation: shareBrandPulse 4s ease-in-out infinite;
+    }
+
+    .share-card .brand strong,
+    .share-card .brand span {
+      display: block;
+      line-height: 1.1;
+    }
+
+    .share-card .brand strong {
+      font-size: 17px;
+      letter-spacing: 0.08em;
+      font-weight: 800;
+    }
+
+    .share-card .brand span {
+      margin-top: 3px;
+      font-size: 12px;
+      color: var(--share-muted);
+      letter-spacing: 0.18em;
+    }
+
+    /* 
+       LOADING
+       */
+
+    #loading-state {
+      text-align: center;
+      padding: 34px 10px 18px;
+      animation: shareFadeUp 0.5s 0.2s both;
+    }
+
+    #loading-state::before {
+      content: "";
+      display: block;
+
+      width: 42px;
+      height: 42px;
+
+      margin: 0 auto 22px;
+
+      border-radius: 50%;
+      border: 3px solid rgba(255,255,255,0.08);
+      border-top-color: var(--share-primary);
+
+      animation: shareSpin 0.85s linear infinite;
+    }
+
+    #loading-state p {
+      margin: 0;
+      font-size: 15px;
+      color: var(--share-muted);
+    }
+
+    /*
+       INVALID STATE
+     */
+
+    #invalid-state {
+      animation: shareFadeUp 0.45s ease both;
+    }
+
+    .share-msg.error {
+      position: relative;
+
+      padding: 20px 20px 20px 56px;
+
+      border-radius: 16px;
+
+      background: rgba(251, 113, 133, 0.08);
+      border: 1px solid rgba(251, 113, 133, 0.18);
+
+      color: #fecdd3;
+
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    .share-msg.error::before {
+      content: "!";
+      position: absolute;
+
+      left: 18px;
+      top: 18px;
+
+      width: 25px;
+      height: 25px;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      border-radius: 50%;
+
+      background: rgba(251, 113, 133, 0.14);
+      color: var(--share-danger);
+
+      font-weight: 800;
+    }
+
+    /* 
+       DOWNLOAD AREA
+      */
+
+    #download-state {
+      animation: shareDownloadEnter 0.65s cubic-bezier(.22, 1, .36, 1);
+    }
+
+    /* File icon */
+
+    #download-state::before {
+      content: "↳";
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      width: 64px;
+      height: 64px;
+
+      margin-bottom: 22px;
+
+      border-radius: 18px;
+
+      background:
+        linear-gradient(
+          135deg,
+          rgba(124, 92, 255, 0.18),
+          rgba(124, 92, 255, 0.07)
+        );
+
+      border: 1px solid rgba(124, 92, 255, 0.22);
+
+      color: var(--share-primary-light);
+
+      font-size: 28px;
+      font-weight: 500;
+
+      box-shadow:
+        0 14px 35px rgba(124, 92, 255, 0.12);
+    }
+
+    #file-name {
+      margin: 0;
+
+      color: var(--share-text);
+
+      font-size: clamp(25px, 5vw, 34px);
+      line-height: 1.15;
+      font-weight: 800;
+
+      letter-spacing: -0.035em;
+
+      overflow-wrap: anywhere;
+
+      animation: shareFadeUp 0.5s 0.08s both;
+    }
+
+    .file-meta {
+      margin: 12px 0 30px;
+
+      color: var(--share-muted);
+
+      font-family: "DM Mono", monospace;
+      font-size: 13px;
+      line-height: 1.6;
+
+      animation: shareFadeUp 0.5s 0.14s both;
+    }
+
+    /* =========================
+       MESSAGE
+       ========================= */
+
+    #dl-msg {
+      margin-bottom: 20px;
+    }
+
+    /* =========================
+       FORM
+       ========================= */
+
+    #download-form {
+      animation: shareFadeUp 0.55s 0.18s both;
+    }
+
+    #download-form label {
+      display: block;
+
+      margin-bottom: 10px;
+
+      color: #dce1ea;
+
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .password-wrap {
+      position: relative;
+      margin-top: 10px;
+    }
+
+    #dl-password {
+      width: 100%;
+      height: 56px;
+
+      box-sizing: border-box;
+
+      padding: 0 112px 0 17px;
+
+      border-radius: 14px;
+
+      border: 1px solid rgba(255,255,255,0.10);
+
+      background: rgba(255,255,255,0.045);
+
+      color: var(--share-text);
+
+      font-family: Inter, sans-serif;
+      font-size: 16px;
+
+      outline: none;
+
+      transition:
+        border-color 0.2s ease,
+        background 0.2s ease,
+        box-shadow 0.2s ease,
+        transform 0.2s ease;
+    }
+
+    #dl-password::placeholder {
+      color: #667085;
+    }
+
+    #dl-password:hover {
+      background: rgba(255,255,255,0.06);
+    }
+
+    #dl-password:focus {
+      border-color: rgba(124, 92, 255, 0.75);
+
+      background: rgba(124, 92, 255, 0.055);
+
+      box-shadow:
+        0 0 0 4px rgba(124, 92, 255, 0.10),
+        0 12px 30px rgba(0,0,0,0.12);
+
+      transform: translateY(-1px);
+    }
+
+    .password-toggle {
+      position: absolute;
+
+      top: 50%;
+      right: 9px;
+
+      transform: translateY(-50%);
+
+      min-width: 84px;
+      height: 38px;
+
+      padding: 0 12px;
+
+      border: 0;
+      border-radius: 10px;
+
+      background: rgba(255,255,255,0.07);
+
+      color: #c7ceda;
+
+      font-size: 12px;
+      font-weight: 700;
+
+      cursor: pointer;
+
+      transition:
+        background 0.2s ease,
+        color 0.2s ease,
+        transform 0.2s ease;
+    }
+
+    .password-toggle:hover {
+      background: rgba(124, 92, 255, 0.16);
+      color: white;
+    }
+
+    .password-toggle:active {
+      transform: translateY(-50%) scale(0.96);
+    }
+
+    /* =========================
+       DOWNLOAD BUTTON
+       ========================= */
+
+    #dl-submit {
+      position: relative;
+
+      width: 100%;
+      min-height: 58px;
+
+      margin-top: 18px;
+
+      border: 0;
+      border-radius: 15px;
+
+      background:
+        linear-gradient(
+          135deg,
+          #8063ff,
+          #6244df
+        );
+
+      color: white;
+
+      font-size: 15px;
+      font-weight: 700;
+
+      cursor: pointer;
+
+      box-shadow:
+        0 12px 30px rgba(124, 92, 255, 0.25),
+        inset 0 1px 0 rgba(255,255,255,0.16);
+
+      transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        filter 0.2s ease;
+
+      overflow: hidden;
+    }
+
+    #dl-submit::before {
+      content: "";
+
+      position: absolute;
+      top: 0;
+      left: -120%;
+
+      width: 70%;
+      height: 100%;
+
+      background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255,255,255,0.18),
+        transparent
+      );
+
+      transform: skewX(-20deg);
+      transition: left 0.6s ease;
+    }
+
+    #dl-submit:hover {
+      transform: translateY(-2px);
+
+      box-shadow:
+        0 18px 38px rgba(124, 92, 255, 0.32),
+        inset 0 1px 0 rgba(255,255,255,0.18);
+
+      filter: brightness(1.06);
+    }
+
+    #dl-submit:hover::before {
+      left: 140%;
+    }
+
+    #dl-submit:active {
+      transform: translateY(0) scale(0.985);
+    }
+
+    #dl-submit span {
+      display: inline-block;
+      margin-left: 8px;
+      font-size: 20px;
+      transition: transform 0.2s ease;
+    }
+
+    #dl-submit:hover span {
+      transform: translateX(5px);
+    }
+
+    /* =========================
+       HIDDEN
+       ========================= */
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* =========================
+       ANIMATIONS
+       ========================= */
+
+    @keyframes shareCardEnter {
+      from {
+        opacity: 0;
+        transform: translateY(22px) scale(0.97);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @keyframes shareFadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes shareDownloadEnter {
+      from {
+        opacity: 0;
+        transform: translateY(18px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes shareSpin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @keyframes shareBrandPulse {
+      0%,
+      100% {
+        transform: translateY(0);
+        box-shadow:
+          0 10px 30px rgba(124, 92, 255, 0.28),
+          inset 0 1px 0 rgba(255,255,255,0.2);
+      }
+
+      50% {
+        transform: translateY(-2px);
+        box-shadow:
+          0 14px 36px rgba(124, 92, 255, 0.36),
+          inset 0 1px 0 rgba(255,255,255,0.2);
+      }
+    }
+
+    @keyframes shareOrbOne {
+      0%,
+      100% {
+        transform: translate(0, 0);
+      }
+
+      50% {
+        transform: translate(35px, 25px);
+      }
+    }
+
+    @keyframes shareOrbTwo {
+      0%,
+      100% {
+        transform: translate(0, 0);
+      }
+
+      50% {
+        transform: translate(-30px, -20px);
+      }
+    }
+
+    /* =========================
+       ACCESSIBILITY
+       ========================= */
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    /* =========================
+       MOBILE
+       ========================= */
+
+    @media (max-width: 600px) {
+      .share-shell {
+        padding: 20px 14px;
+      }
+
+      .share-card {
+        padding: 30px 22px;
+        border-radius: 22px;
+      }
+
+      .share-card .brand {
+        margin-bottom: 30px !important;
+      }
+
+      #file-name {
+        font-size: 26px;
+      }
+
+      #dl-password {
+        height: 54px;
+      }
+
+      #dl-submit {
+        min-height: 56px;
+      }
+    }
+
+    @media (max-width: 380px) {
+      .share-card {
+        padding: 26px 18px;
+      }
+
+      .share-card .brand-mark {
+        width: 44px;
+        height: 44px;
+        flex-basis: 44px;
+      }
+
+      #file-name {
+        font-size: 23px;
+      }
+    }
+  </style>
 </head>
-<body>
+
+<body class="share-page">
+
   <div class="share-shell">
+
     <div class="share-card">
-      <div class="brand" style="margin-bottom:22px">
+
+      <!-- =========================
+           BRAND
+           ========================= -->
+
+      <div class="brand">
         <div class="brand-mark">CF</div>
-        <div><strong>COFFRE</strong><span>FORT</span></div>
+
+        <div>
+          <strong>COFFRE</strong>
+          <span>FORT</span>
+        </div>
       </div>
 
-      <div id="loading-state"><p class="muted">Vérification du lien…</p></div>
+
+      <!-- =========================
+           LOADING
+           ========================= -->
+
+      <div id="loading-state">
+        <p class="muted">Vérification du lien…</p>
+      </div>
+
+
+      <!-- =========================
+           INVALID LINK
+           ========================= -->
 
       <div id="invalid-state" class="hidden">
-        <div class="share-msg error" id="invalid-msg">Ce lien de partage est invalide ou a expiré.</div>
+
+        <div
+          class="share-msg error"
+          id="invalid-msg"
+        >
+          Ce lien de partage est invalide ou a expiré.
+        </div>
+
       </div>
 
+
+      <!-- =========================
+           DOWNLOAD
+           ========================= -->
+
       <div id="download-state" class="hidden">
+
         <h2 id="file-name"></h2>
-        <p class="muted file-meta" id="file-meta"></p>
+
+        <p
+          class="muted file-meta"
+          id="file-meta"
+        ></p>
+
+
+        <!-- Messages générés par share.js -->
+
         <div id="dl-msg"></div>
+
+
+        <!-- Download form -->
+
         <form id="download-form">
-          <label>Mot de passe fourni par l'expéditeur
+
+          <label for="dl-password">
+            Mot de passe fourni par l'expéditeur
+
             <div class="password-wrap">
-              <input id="dl-password" type="password" autocomplete="off" required>
-              <button type="button" class="password-toggle" data-target="dl-password">Afficher</button>
+
+              <input
+                id="dl-password"
+                type="password"
+                autocomplete="off"
+                placeholder="Entrez le mot de passe"
+                required
+              >
+
+              <button
+                type="button"
+                class="password-toggle"
+                data-target="dl-password"
+              >
+                Afficher
+              </button>
+
             </div>
+
           </label>
-          <button class="primary-btn" type="submit" id="dl-submit">Déchiffrer et télécharger <span>→</span></button>
+
+
+          <button
+            class="primary-btn"
+            type="submit"
+            id="dl-submit"
+          >
+            Déchiffrer et télécharger
+            <span>→</span>
+          </button>
+
         </form>
+
       </div>
+
     </div>
+
   </div>
+
+
+  <!-- =========================
+       SCRIPTS
+       ========================= -->
 
   <script src="/js/crypto.js"></script>
   <script src="/js/share.js"></script>
+
 </body>
 </html>
