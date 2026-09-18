@@ -41,10 +41,17 @@ async function decryptFile(ciphertextArrayBuffer, password, saltHex, ivHex, expe
   const salt = new Uint8Array(hexToBuf(saltHex));
   const iv = new Uint8Array(hexToBuf(ivHex));
   const key = await deriveKey(password, salt);
-  const plaintext = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ciphertextArrayBuffer);
+
+  let plaintext;
+  try {
+    plaintext = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ciphertextArrayBuffer);
+  } catch (err) {
+    throw new Error('Mot de passe incorrect, ou fichier corrompu.');
+  }
+
   const actualHash = await sha256Hex(plaintext);
   if (actualHash !== expectedHashHex.toLowerCase()) {
-    throw new Error('Le fichier ne correspond pas à son empreinte attendue.');
+    throw new Error('Le fichier déchiffré ne correspond pas à son empreinte attendue.');
   }
   return plaintext;
 }

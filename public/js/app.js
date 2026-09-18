@@ -1190,15 +1190,11 @@ function setup() {
 
   $("#logout-btn").onclick = () => {
     Auth.logout();
-
     state.user = null;
-    state.files = [];
-
+    $("#login-form").reset();
+    $("#register-form").reset();
     showAuth("login");
-
-    toast(
-      "Session fermée."
-    );
+    toast("Session fermée.");
   };
 
   $("#menu-btn").onclick = () => {
